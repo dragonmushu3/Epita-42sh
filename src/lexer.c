@@ -69,12 +69,48 @@ struct token *lexer_peek(struct lexer *lexer)
     {
         lexer->pos++;
     }
-    size_t word_end = lexer->pos
+    size_t word_end = lexer->pos;
     char *value = segment_input(lexer, word_start, word_end);
     /* compare the word with eventually a token*/
-    //switch (value)
-    //{
-    //    c
-    //}
-    return NULL;
+    if (strcmp("if", value) == 0)
+    {
+        toke->type = TOKEN_IF;
+    }
+    else if (strcmp("else", value) == 0)
+    {
+        toke->type = TOKEN_ELSE;
+    }
+    else if (strcmp("elif", value) == 0)
+    {
+        toke->type = TOKEN_ELIF;
+    }
+    else if (strcmp("fi", value) == 0)
+    {
+        toke->type = TOKEN_FI;
+    }
+
+    else if (strcmp("'", value) == 0)
+    {
+        toke->type = TOKEN_SQ;
+    }
+
+    else if (strcmp(";", value) == 0)
+    {
+        toke->type = TOKEN_PV;
+    }
+
+    else if (strcmp("then", value) == 0)
+    {
+        toke->type = TOKEN_THEN;
+    }
+    else if (strcmp("/n", value) == 0)
+    {
+        toke->type = TOKEN_NL;
+    }
+    else
+    {
+        toke->type = TOKEN_OTHER;
+    }
+    lexer->current_tok = toke;
+    return toke;
 }

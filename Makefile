@@ -8,10 +8,11 @@ PRG = 42sh
 
 VPATH = src
 
-SRC =
+SRC = main.c lexer.c
 OBJ = $(addprefix src/,${SRC:.c=.o})
 DEP = $(addprefix src/,${SRC:.c=.d})
 
+main: $(OBJ)
 
 .PHONY: clean
 

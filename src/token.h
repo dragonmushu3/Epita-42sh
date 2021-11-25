@@ -22,3 +22,8 @@ enum token_comm
     TOKEN_SQ, /*  Simple Quote   '   */
     TOKEN_OTHER, /*  words  */
 };
+struct token
+{
+    enum token_comm type; ///< The kind of token
+    ssize_t value; ///< If the token is a number, its value
+};
