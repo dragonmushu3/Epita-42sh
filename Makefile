@@ -14,7 +14,13 @@ DEP = $(addprefix src/,${SRC:.c=.d})
 
 main: $(OBJ)
 
-lexer_test_main: tests/lexer_test_main.o src/lexer.o
+ast_test_main: tests/ast_test_main.o src/lexer.o
+
+
+
+
+
+
 
 .PHONY: clean
 
