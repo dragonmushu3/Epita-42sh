@@ -6,7 +6,7 @@ LDLIBS =
 
 PRG = 42sh
 
-VPATH = src
+VPATH = src tests
 
 SRC = main.c lexer.c
 OBJ = $(addprefix src/,${SRC:.c=.o})
@@ -14,7 +14,10 @@ DEP = $(addprefix src/,${SRC:.c=.d})
 
 main: $(OBJ)
 
+lexer_test_main: tests/lexer_test_main.o src/lexer.o
+
 .PHONY: clean
 
 clean:
-	$(RM) ${OBJ} ${DEP} ${PRG}
+	$(RM) ${OBJ} ${DEP} ${PRG} main lexer_test_main
+	$(RM) tests/*.o tests/*.d
