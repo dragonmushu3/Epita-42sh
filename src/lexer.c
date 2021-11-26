@@ -110,6 +110,7 @@ struct token *lexer_peek(struct lexer *lexer)
     else
     {
         toke->type = TOKEN_OTHER;
+        toke->value = value;
     }
     lexer->current_tok = toke;
     return toke;
