@@ -20,10 +20,16 @@ enum token_comm
     TOKEN_PV, /*  Point Virgule  ;   */
     TOKEN_NL, /*  New Line       \n  */
     TOKEN_SQ, /*  Simple Quote   '   */
+    TOKEN_EOF, /* End Of File    \0  */
     TOKEN_OTHER, /*  words  */
 };
 struct token
 {
     enum token_comm type; ///< The kind of token
-    char *value; ///< If the token is a word, it's string
+    char *value; ///< If word, it's string
 };
+
+struct token *token_new(enum token_comm type);
+/*  brief Frees a token  */
+
+void token_free(struct token *token);

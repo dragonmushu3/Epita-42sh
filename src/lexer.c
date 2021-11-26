@@ -103,15 +103,38 @@ struct token *lexer_peek(struct lexer *lexer)
     {
         toke->type = TOKEN_THEN;
     }
-    else if (strcmp("/n", value) == 0)
+    else if (strcmp("\0", value) == 0)
     {
-        toke->type = TOKEN_NL;
+        toke->type = TOKEN_EOF;
     }
     else
     {
         toke->type = TOKEN_OTHER;
-        toke->value = value;
     }
     lexer->current_tok = toke;
+    return toke;
+}
+
+struct token *lexer_pop(struct lexer *lexer)
+{
+    struct token *toke = NULL;
+    if (!lexer->current_tok)
+    {
+        toke = lexer_peek(lexer);
+        lexer->current_tok = NULL;
+        return toke;
+    }
+    toke = calloc(1, sizeof(struct token));
+    if (!toke)
+    {
+        return NULL;
+    }
+    toke->type = lexer->current_tok->type;
+    if (toke->type == TOKEN_OTHER)
+    {
+        toke->value = lexer->current_tok->value;
+    }
+    free(lexer->current_tok);
+    lexer->current_tok = NULL;
     return toke;
 }
