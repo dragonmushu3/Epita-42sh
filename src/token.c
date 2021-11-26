@@ -5,7 +5,7 @@
 
 #include "alloc.h"
 
-struct token *token_new(enum token_type type)
+struct token *token_new(enum token_comm type)
 {
     struct token *new = zalloc(sizeof(struct token));
     new->type = type;

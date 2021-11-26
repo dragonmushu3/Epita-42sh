@@ -1,20 +1,20 @@
 CPPFLAGS = -MMD
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c99 -D_DEFAULT_SOURCE 
-LDFLAGS =
+CFLAGS = -Wall -Wextra -Werror -std=c99 -D_DEFAULT_SOURCE -fsanitize=address -g
+LDFLAGS = -fsanitize=address
 LDLIBS =
 
 PRG = 42sh
 
 VPATH = src tests
 
-SRC = main.c lexer.c
+SRC = lexer.c ast.c parser.c token.c ast_print.c
 OBJ = $(addprefix src/,${SRC:.c=.o})
 DEP = $(addprefix src/,${SRC:.c=.d})
 
-main: $(OBJ)
 
-ast_test_main: tests/ast_test_main.o src/lexer.o
+ast_print: $(OBJ)
+
 
 
 

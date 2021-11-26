@@ -23,7 +23,7 @@ enum ast_type
 struct ast
 {
     enum ast_type type; ///< The kind of node we're dealing with
-    ssize_t value; ///< If the node is a number, it stores its value
+    char *value; ///< If the node is a word, it stores it's string
     struct ast *left; ///< The left branch if any, unuary or binary
     struct ast *right; ///< The right branch of the binary node
 };

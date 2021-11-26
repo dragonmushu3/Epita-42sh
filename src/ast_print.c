@@ -3,27 +3,28 @@
 #include "lexer.h"
 #include "parser.h"
 
-char tab[] = { [AST_PLUS] = '+',
-               [AST_MINUS] = '-',
-               [AST_MUL] = '*',
-               [AST_DIV] = '/' };
+char *tab[] =  {[AST_FI] = "fi",
+               [AST_ELSE] = "else",
+               [AST_ELIF] = "elif",
+               [AST_IF] = "if" ,
+               [AST_THEN] = "then" ,
+               [AST_SQ] = "'" ,
+               [AST_PV] = ";" };
 
 void print_ast(struct ast *ast)
 {
     if (ast == NULL)
         return;
 
-    if (ast->type == AST_NUMBER)
-        printf("%zu", ast->value);
-    else if (ast->type == AST_NEG)
-        printf("-%zu", (ast->left)->value);
+    if (ast->type == AST_OTHER)
+        printf("%s", ast->value);
     else
     {
         printf("(");
 
         print_ast(ast->left);
 
-        printf("%c", tab[ast->type]);
+        printf("%s", tab[ast->type]);
 
         print_ast(ast->right);
 
