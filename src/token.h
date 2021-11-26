@@ -25,5 +25,5 @@ enum token_comm
 struct token
 {
     enum token_comm type; ///< The kind of token
-    ssize_t value; ///< If the token is a number, its value
+    char *value; ///< If the token is a word, it's string
 };
