@@ -19,6 +19,28 @@ static enum parser_status handle_parse_error(enum parser_status status,
     return status;
 }
 
+enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
+{
+    struct token *tok = lexer_peek(lexer);
+    if (tok->type != TOKEN_OTHER)
+    {
+        return status;
+    }
+    struct ast *sp_comm = ast_new(AST_SIMPLE_COMM);
+    size_t data_size = sizeof(char*) * 1;
+    char *data[] = xmalloc(data_size);
+    data[0] = tok->value;
+    token_free(lexer_pop(lexer));
+    while (true)
+    {
+        tok = lexer_peek(lexer);
+        if (tok->type == TOKEN_OTHER)
+            data_size += sizeof(char*) * 1;
+            data = xrealloc(data, data_size);
+    }
+
+
+
 /* from TOKEN_LESS_PRIORITY
  *  to  TOKEN_MORE_PRIORITY*/
 

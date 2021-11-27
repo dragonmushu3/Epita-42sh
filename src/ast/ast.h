@@ -4,6 +4,7 @@
 
 enum ast_type
 {
+    AST_SIMPLE_COMM,
     AST_OTHER,
     AST_PV,
     AST_FI,
@@ -23,7 +24,7 @@ enum ast_type
 struct ast
 {
     enum ast_type type; ///< The kind of node we're dealing with
-    char *value; ///< If the node is a word, it stores it's string
+    char **data; ///< If the node is a command , it's args
     struct ast *left; ///< The left branch if any, unuary or binary
     struct ast *right; ///< The right branch of the binary node
 };
