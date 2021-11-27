@@ -47,6 +47,11 @@ static char *segment_input(struct lexer *lexer, size_t start, size_t end)
     return str;
 }
 
+int my_isspace(char c)
+{
+    return c == 32 || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\0';
+}
+
 struct token *lexer_peek(struct lexer *lexer)
 {
     if (lexer->current_tok)
@@ -58,58 +63,69 @@ struct token *lexer_peek(struct lexer *lexer)
     {
         return NULL;
     }
-    while ((lexer->input[lexer->pos] == '\n')
-           || (lexer->input[lexer->pos] == ' ')
+    while ((lexer->input[lexer->pos] == ' ')
            || (lexer->input[lexer->pos] == '\t'))
     {
         lexer->pos = lexer->pos + 1;
     }
     size_t word_start = lexer->pos;
-    while (!isspace(lexer->input[lexer->pos]))
+    while (!my_isspace(lexer->input[lexer->pos]))
     {
         lexer->pos++;
     }
     size_t word_end = lexer->pos;
     char *value = segment_input(lexer, word_start, word_end);
+
     /* compare the word with eventually a token*/
     if (strcmp("if", value) == 0)
     {
         toke->type = TOKEN_IF;
+        toke->value = value;
     }
     else if (strcmp("else", value) == 0)
     {
         toke->type = TOKEN_ELSE;
+        toke->value = value;
     }
     else if (strcmp("elif", value) == 0)
     {
         toke->type = TOKEN_ELIF;
+        toke->value = value;
     }
     else if (strcmp("fi", value) == 0)
     {
         toke->type = TOKEN_FI;
+        toke->value = value;
     }
-
     else if (strcmp("'", value) == 0)
     {
         toke->type = TOKEN_SQ;
+        toke->value = value;
     }
-
     else if (strcmp(";", value) == 0)
     {
         toke->type = TOKEN_PV;
+        toke->value = value;
     }
-
     else if (strcmp("then", value) == 0)
     {
         toke->type = TOKEN_THEN;
+        toke->value = value;
     }
-    else if (strcmp("\0", value) == 0)
+    else if (*value == '\n')
+    {
+        toke->type = TOKEN_NL;
+        toke->value = value;
+    }
+    else if (*value == '\0')
     {
         toke->type = TOKEN_EOF;
+        toke->value = value;
     }
     else
     {
         toke->type = TOKEN_OTHER;
+        toke->value = value;
     }
     lexer->current_tok = toke;
     return toke;

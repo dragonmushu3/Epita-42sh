@@ -16,10 +16,19 @@ void print_ast(struct ast *ast)
     if (ast == NULL)
         return;
 
-    if (ast->type == AST_OTHER)
-        printf("%s", ast->value);
+    if (ast->type == AST_SIMPLE_COMM)
+    {
+        printf("This is a simple_command:\n");
+        size_t i = 0;
+        while (ast->data[i])
+        {
+            printf("[%s]\n", ast->data[i]);
+            i++;
+        }
+    }
     else
     {
+        printf("this is not a command\n");
         printf("(");
 
         print_ast(ast->left);
@@ -36,8 +45,10 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
         return 1;
+    char *s = "echo foo";
+    argv++;
 
-    struct lexer *lexer = lexer_new(argv[1]);
+    struct lexer *lexer = lexer_new(s);
 
     struct ast *ast;
     enum parser_status status = parse(&ast, lexer);

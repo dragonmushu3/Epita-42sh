@@ -1,7 +1,10 @@
 #include "parser.h"
+#include "alloc.h"
 
 #include <err.h>
+#include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 static enum parser_status parse_if(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_pv(struct ast **res, struct lexer *lexer);
@@ -24,20 +27,37 @@ enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
     struct token *tok = lexer_peek(lexer);
     if (tok->type != TOKEN_OTHER)
     {
-        return status;
+        return PARSER_UNEXPECTED_TOKEN;
     }
     struct ast *sp_comm = ast_new(AST_SIMPLE_COMM);
     size_t data_size = sizeof(char*) * 1;
-    char *data[] = xmalloc(data_size);
-    data[0] = tok->value;
+    size_t data_index = 0;
+    sp_comm->data = malloc(data_size);
+    sp_comm->data[0] = tok->value;
     token_free(lexer_pop(lexer));
     while (true)
     {
         tok = lexer_peek(lexer);
         if (tok->type == TOKEN_OTHER)
+        {
             data_size += sizeof(char*) * 1;
-            data = xrealloc(data, data_size);
+            sp_comm->data = realloc(sp_comm->data, data_size);
+            data_index++;
+            sp_comm->data[data_index] = tok->value;
+            token_free(lexer_pop(lexer));
+        }
+        else if (tok->type == TOKEN_EOF || tok->type == TOKEN_NL)
+        {
+            data_size += sizeof(char*) * 1;
+            sp_comm->data = realloc(sp_comm->data, data_size);
+            data_index++;
+            sp_comm->data[data_index] = NULL;
+            *res = sp_comm;
+            token_free(lexer_pop(lexer));
+            return PARSER_OK;
+        }
     }
+}
 
 
 
@@ -61,7 +81,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
 
     // try to parse an expression. if an error occured, free the
     // produced ast and return the same error code
-    enum parser_status status = parse_pv(res, lexer);
+    enum parser_status status = parse_simple_comm(res, lexer);
     if (status != PARSER_OK)
         return handle_parse_error(status, res);
 

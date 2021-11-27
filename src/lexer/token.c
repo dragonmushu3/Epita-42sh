@@ -14,7 +14,6 @@ struct token *token_new(enum token_comm type)
 
 void token_free(struct token *token)
 {
-    free(token->value);
     free(token);
     token = NULL;
 }
