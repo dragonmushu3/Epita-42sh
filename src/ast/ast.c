@@ -23,5 +23,13 @@ void ast_free(struct ast *ast)
     ast_free(ast->right);
     ast->right = NULL;
 
+
+    size_t i = 0;
+    while (data[i])
+    {
+        free(data[i]);
+        i++;
+    }
+    free(data);
     free(ast);
 }
