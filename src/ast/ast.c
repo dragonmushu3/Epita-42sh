@@ -25,11 +25,11 @@ void ast_free(struct ast *ast)
 
 
     size_t i = 0;
-    while (data[i])
+    while (ast->data[i])
     {
-        free(data[i]);
+        free(ast->data[i]);
         i++;
     }
-    free(data);
+    free(ast->data);
     free(ast);
 }
