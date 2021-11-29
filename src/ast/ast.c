@@ -2,6 +2,7 @@
 
 #include <err.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "alloc.h"
 
@@ -32,4 +33,49 @@ void ast_free(struct ast *ast)
     }
     free(ast->data);
     free(ast);
+}
+
+void print_ast(struct ast *ast)
+{
+    if (ast == NULL)
+        return;
+
+    if (ast->type == AST_SIMPLE_COMM)
+    {
+        size_t i = 0;
+        while (ast->data[i])
+        {
+            if (!ast->data[i+1])
+            {
+                printf("[%s]", ast->data[i]);
+                i++;
+            }
+            else
+            {
+                printf("[%s] ", ast->data[i]);
+                i++;
+            }
+        }
+    }
+    else if (ast->type == AST_IF)
+    {
+        printf("if ");
+        putchar(')');
+        print_ast(ast->left);
+        putchar(')');
+
+        printf("then (");
+        print_ast(ast->right);
+        putchar(')');
+    }
+    else if (ast->type == AST_PIPE)
+    {
+        print_ast(ast->left);
+        printf(" | ");
+        print_ast(ast->right);
+    }
+    else
+    {
+        printf("don't know this one yet");
+    }
 }

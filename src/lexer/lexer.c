@@ -49,7 +49,7 @@ static char *segment_input(struct lexer *lexer, size_t start, size_t end)
 
 int my_isspace(char c)
 {
-    return c == 32 || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\0';
+    return c == 32 || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\0' || c == '\n';
 }
 
 struct token *lexer_peek(struct lexer *lexer)

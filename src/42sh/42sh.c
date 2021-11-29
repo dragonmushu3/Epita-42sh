@@ -9,6 +9,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "ast.h"
 
 static int parse_and_exec(char *line)
 {
@@ -21,9 +22,10 @@ static int parse_and_exec(char *line)
         lexer_free(lexer);
         return 1;
     }
-    printf("%d \n",ast->type);
-    printf("%s \n",ast->data[0]);
+
+    print_ast(ast);
     printf("\n");
+
     ast_free(ast);
     lexer_free(lexer);
 
@@ -42,7 +44,6 @@ int main(int argc, char *argv[])
         while ((nread = getline(&line, &n, stdin)) != -1)
         {
             /*parse and execute lines FIX ME*/
-            printf("The current input was: %.*s",nread, line);
             if (parse_and_exec(line) == -1)
                 errx(1, "parsing failed: %.*s", nread, line);
             printf("42sh$ ");
@@ -63,7 +64,6 @@ int main(int argc, char *argv[])
             err(1, "0");
         while ((nread = getline(&line, &n, file)) != -1)
         {
-            printf("The current input was: %.*s \n",nread, line);
             if (parse_and_exec(line) == -1)
                 errx(1, "parsing failed: %.*s", nread, line);
         }

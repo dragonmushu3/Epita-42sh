@@ -5,7 +5,7 @@
 enum ast_type
 {
     AST_SIMPLE_COMM,
-    AST_OTHER,
+    AST_PIPE,
     AST_PV,
     AST_FI,
     AST_THEN,
@@ -38,3 +38,5 @@ struct ast *ast_new(enum ast_type type);
  ** \brief Recursively free the given ast
  */
 void ast_free(struct ast *ast);
+
+void print_ast(struct ast *ast);
