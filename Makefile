@@ -6,12 +6,13 @@ LDLIBS =
 
 PRG = 42sh
 
-VPATH = src/ast src/lexer src/parser tests
+VPATH = src/ast src/lexer src/parser tests src/42sh
 
-SRC = lexer.c ast.c parser.c token.c ast_print.c
+SRC = lexer.c ast.c parser.c token.c 42sh.c
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
 
+42sh: $(OBJ)
 
 ast_print: $(OBJ)
 
