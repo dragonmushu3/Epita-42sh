@@ -11,8 +11,22 @@
 int main(int argc, char *argv[])
 {
     if (argc < 2)
-        errx(-1, "not enough arguments");
+    {
+        //read stdin
+        printf("42sh$ ");
+        char *line = NULL;
+        size_t n = 0;
+        int nread = 0;
+        while ((nread = getline(&line, &n, stdin)) != -1)
+        {
+            printf("%.*s",nread, line);
+            printf("42sh$ ");
+        }
+        free(line);
+        argv++;
+        return 0;
 
+    }
     if (strcmp(argv[1], "-c") != 0)
     {
         //read stdin
