@@ -23,5 +23,5 @@ ast_print: $(OBJ)
 .PHONY: clean
 
 clean:
-	$(RM) ${OBJ} ${DEP} ${PRG} main lexer_test_main
+	$(RM) ${OBJ} ${DEP} ${PRG} main ast_print
 	$(RM) tests/*.o tests/*.d
