@@ -14,8 +14,6 @@ DEP = ${SRC:.c=.d}
 
 42sh: $(OBJ)
 
-ast_print: $(OBJ)
-
 
 
 
@@ -24,5 +22,5 @@ ast_print: $(OBJ)
 .PHONY: clean
 
 clean:
-	$(RM) ${OBJ} ${DEP} ${PRG} main ast_print
+	$(RM) ${OBJ} ${DEP} ${PRG}
 	$(RM) tests/*.o tests/*.d

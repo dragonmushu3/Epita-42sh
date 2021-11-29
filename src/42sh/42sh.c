@@ -4,60 +4,78 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "lexer.h"
 #include "parser.h"
+
+static int parse_and_exec(char *line)
+{
+    struct lexer *lexer = lexer_new(line);
+
+    struct ast *ast;
+    enum parser_status status = parse(&ast, lexer);
+    if (status != PARSER_OK)
+    {
+        lexer_free(lexer);
+        return 1;
+    }
+    printf("%d \n",ast->type);
+    printf("%s \n",ast->data[0]);
+    printf("\n");
+    ast_free(ast);
+    lexer_free(lexer);
+
+    return 0;
+}
 
 int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        //read stdin
+        //read stdin and parse the lines
         printf("42sh$ ");
         char *line = NULL;
         size_t n = 0;
         int nread = 0;
         while ((nread = getline(&line, &n, stdin)) != -1)
         {
-            printf("%.*s",nread, line);
+            /*parse and execute lines FIX ME*/
+            printf("The current input was: %.*s",nread, line);
+            if (parse_and_exec(line) == -1)
+                errx(1, "parsing failed: %.*s", nread, line);
             printf("42sh$ ");
         }
         free(line);
-        argv++;
         return 0;
-
     }
+
     if (strcmp(argv[1], "-c") != 0)
     {
-        //read stdin
+        //parse and execute text from file in argv[1] FIX ME
         char *line = NULL;
         size_t n = 0;
         int nread = 0;
-        while ((nread = getline(&line, &n, stdin)) != -1)
+
+        FILE *file = fopen(argv[1], "r");
+        if (!file)
+            err(1, "0");
+        while ((nread = getline(&line, &n, file)) != -1)
         {
-            printf("%.*s \n",nread, line);
+            printf("The current input was: %.*s \n",nread, line);
+            if (parse_and_exec(line) == -1)
+                errx(1, "parsing failed: %.*s", nread, line);
         }
         free(line);
-        argv++;
+        fclose(file);
         return 0;
     }
     else
     {
-        struct lexer *lexer = lexer_new(argv[2]);
-
-        struct ast *ast;
-        enum parser_status status = parse(&ast, lexer);
-        if (status != PARSER_OK)
-        {
-            lexer_free(lexer);
-            return 1;
-        }
-        printf("%d \n",ast->type);
-        printf("%s \n",ast->data[0]);
-        printf("\n");
-        ast_free(ast);
-        lexer_free(lexer);
-
+        //parse and execute the string argument in argv[2]
+        if (parse_and_exec(argv[2]) == -1)
+            errx(1, "parsing failed: %s", argv[2]);
         return 0;
     }
 }

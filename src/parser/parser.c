@@ -53,6 +53,7 @@ enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
             data_index++;
             sp_comm->data[data_index] = NULL;
             *res = sp_comm;
+            free(tok->value);
             token_free(lexer_pop(lexer));
             return PARSER_OK;
         }
@@ -84,6 +85,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     enum parser_status status = parse_simple_comm(res, lexer);
     if (status != PARSER_OK)
         return handle_parse_error(status, res);
+    return PARSER_OK;
 
     // once parsing the expression is done, we should have
     // reached the end of file.
