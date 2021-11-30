@@ -10,6 +10,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "ast.h"
+#include "exec_ast.h"
 
 static int parse_and_exec(char *line)
 {
@@ -23,8 +24,8 @@ static int parse_and_exec(char *line)
         return 1;
     }
 
-    print_ast(ast);
-    printf("\n");
+    //print_ast(ast);
+    exec_ast(ast);
 
     ast_free(ast);
     lexer_free(lexer);
