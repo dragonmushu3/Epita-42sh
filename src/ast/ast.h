@@ -25,8 +25,7 @@ struct ast
 {
     enum ast_type type; ///< The kind of node we're dealing with
     char **data; ///< If the node is a command , it's args
-    struct ast *left; ///< The left branch if any, unuary or binary
-    struct ast *right; ///< The right branch of the binary node
+    struct ast *children[]; ///< The array of children
 };
 
 /**
