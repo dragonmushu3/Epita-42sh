@@ -17,12 +17,13 @@ void ast_free(struct ast *ast)
 {
     if (ast == NULL)
         return;
-
-    ast_free(ast->left);
-    ast->left = NULL;
-
-    ast_free(ast->right);
-    ast->right = NULL;
+    int child = 0;
+    while (ast->children[child] != NULL)
+    {
+        ast_free(ast->children[child]);
+        ast->children[child] = NULL;
+        i++;
+    }
 
 
     size_t i = 0;
