@@ -22,7 +22,7 @@ void ast_free(struct ast *ast)
     {
         ast_free(ast->children[child]);
         ast->children[child] = NULL;
-        i++;
+        child++;
     }
 
 
@@ -58,23 +58,23 @@ void print_ast(struct ast *ast)
             }
         }
     }
-    else if (ast->type == AST_IF)
-    {
-        printf("if ");
-        putchar(')');
-        print_ast(ast->left);
-        putchar(')');
-
-        printf("then (");
-        print_ast(ast->right);
-        putchar(')');
-    }
-    else if (ast->type == AST_PIPE)
-    {
-        print_ast(ast->left);
-        printf(" | ");
-        print_ast(ast->right);
-    }
+//    else if (ast->type == AST_IF)
+//    {
+//        printf("if ");
+//        putchar(')');
+//        print_ast(ast->left);
+//        putchar(')');
+//
+//        printf("then (");
+//        print_ast(ast->right);
+//        putchar(')');
+//    }
+//    else if (ast->type == AST_PIPE)
+//    {
+//        print_ast(ast->left);
+//        printf(" | ");
+//        print_ast(ast->right);
+//    }
     else
     {
         printf("don't know this one yet");

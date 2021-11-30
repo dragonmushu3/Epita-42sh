@@ -4,6 +4,7 @@
 
 enum ast_type
 {
+    AST_COMM,
     AST_SIMPLE_COMM,
     AST_PIPE,
     AST_PV,
@@ -25,7 +26,7 @@ struct ast
 {
     enum ast_type type; ///< The kind of node we're dealing with
     char **data; ///< If the node is a command , it's args
-    struct ast *children[]; ///< The array of children
+    struct ast **children; ///< The array of children
 };
 
 /**

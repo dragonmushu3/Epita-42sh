@@ -6,12 +6,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-static enum parser_status parse_if(struct ast **res, struct lexer *lexer);
+/*static enum parser_status parse_if(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_pv(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_fi(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_then(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_if(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_sq(struct ast **res, struct lexer *lexer);
+*/
 
 static enum parser_status handle_parse_error(enum parser_status status,
                                              struct ast **res)
@@ -22,6 +23,13 @@ static enum parser_status handle_parse_error(enum parser_status status,
     return status;
 }
 
+
+
+/**
+ * \brief Parse sexp expressions separated by + and -
+ *
+ * simple_command: (prefix)+ | (prefix)* (element)+
+ */
 enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
 {
     struct token *tok = lexer_peek(lexer);
@@ -46,7 +54,7 @@ enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
             sp_comm->data[data_index] = tok->value;
             token_free(lexer_pop(lexer));
         }
-        else if (tok->type == TOKEN_EOF || tok->type == TOKEN_NL)
+        else if (tok->type == TOKEN_EOF || tok->type == TOKEN_NL || tok->type == TOKEN_PV)
         {
             data_size += sizeof(char*) * 1;
             sp_comm->data = realloc(sp_comm->data, data_size);
@@ -61,6 +69,158 @@ enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
 }
 
 
+/**
+ * \brief Parse sexp expressions separated by + and -
+ *
+ * command: simple_command | shell_command (redirection) | funcdec (redirection)
+ */
+static enum parser_status parse_command(struct ast **res, struct lexer *lexer)
+{
+    enum parser_status status = parse_simple_comm(res, lexer);
+    if (status != PARSER_OK)
+        return status;
+
+    struct ast *comm = ast_new(AST_COMM);
+    size_t children_size = sizeof(struct ast);
+    size_t child_index = 0;
+    comm->children = malloc(sizeof(struct ast) * 1);
+    if (!comm->children)
+    {
+        return 0;
+    }
+    comm->children[child_index] = *res;
+    while (true)
+    {
+        status = parse_simple_comm(res, lexer);
+        if (status != PARSER_OK)
+        {
+            children_size += sizeof(struct ast);
+            comm->children = realloc(comm->children, children_size);
+            child_index++;
+            comm->children[child_index] = NULL;
+            *res = comm;
+            return PARSER_OK;
+        }
+        children_size += sizeof(struct ast);
+        comm->children = realloc(comm->children, children_size);
+        child_index++;
+        comm->children[child_index] = *res;
+    }
+}
+
+
+
+//
+//
+///**
+// * \brief Parse sexp expressions separated by + and -
+// *
+// * pipeline: ['!'] command ('|' ('\n')* command)
+// */
+//static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_command(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_PV)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_PV)
+//            new_ast = ast_new(AST_PV);
+//        token_free(lexer_pop(lexer));
+//
+//        // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_fi(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+//
+//
+//
+//
+///**
+// * \brief Parse sexp expressions separated by + and -
+// *
+// * and_or:  pipeline (('&&'|'||') ('\n')* pipeline)*
+// */
+//static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_pipeline(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_PV)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_PV)
+//            new_ast = ast_new(AST_PV);
+//        token_free(lexer_pop(lexer));
+//
+//        // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_fi(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+//
+//
+
+/**
+ * \brief Parse sexp expressions separated by + and -
+ *
+ * list:  command (';' command)* [';']
+ * list:  and_or ((';'|'&') and_or)* [';'|'&']
+ */
+//static enum parser_status parse_list(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_command(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_PV)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_PV)
+//            new_ast = ast_new(AST_PV);
+//        token_free(lexer_pop(lexer));
+//
+//        // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_fi(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+
+
 
 /* from TOKEN_LESS_PRIORITY
  *  to  TOKEN_MORE_PRIORITY*/
@@ -68,21 +228,21 @@ enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
 /**
  * \brief Parse either an expression, or nothing
  *
- * input:  EOF  |  exp EOF
+ * input:  list '\n' | list EOF | '\n' | EOF
  */
 enum parser_status parse(struct ast **res, struct lexer *lexer)
 {
     // If we're at the end of file, there's no input
     struct token *tok = lexer_peek(lexer);
-    if (tok->type == TOKEN_EOF)
+    if ((tok->type == TOKEN_EOF) ||  (tok->type == TOKEN_NL))
     {
         *res = NULL;
         return PARSER_OK;
     }
 
-    // try to parse an expression. if an error occured, free the
+    // try to parse an list. if an error occured, free the
     // produced ast and return the same error code
-    enum parser_status status = parse_simple_comm(res, lexer);
+    enum parser_status status = parse_command(res, lexer);
     if (status != PARSER_OK)
         return handle_parse_error(status, res);
     return PARSER_OK;
@@ -96,179 +256,180 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     return handle_parse_error(PARSER_UNEXPECTED_TOKEN, res);
 }
 
+
 /**
  * \brief Parse sexp expressions separated by + and -
  *
  * exp:      sexp  (' ; ' sexp)*
  */
-static enum parser_status parse_pv(struct ast **res, struct lexer *lexer)
-{
-    enum parser_status status = parse_fi(res, lexer);
-    if (status != PARSER_OK)
-        return status;
-
-    while (true)
-    {
-        // have a look at the type of the next token. Stop if not interested
-        struct token *tok = lexer_peek(lexer);
-        if (tok->type != TOKEN_PV)
-            return PARSER_OK;
-
-        // make the new ast node and discard the token
-        struct ast *new_ast;
-        if (tok->type == TOKEN_PV)
-            new_ast = ast_new(AST_PV);
-        token_free(lexer_pop(lexer));
-
-        // attach the new node to the ast
-        new_ast->left = *res;
-        *res = new_ast;
-
-        // parse the stuff at the right
-        if ((status = parse_fi(&new_ast->right, lexer)) != PARSER_OK)
-            return status;
-    }
-}
-
-/**
- * \brief Parse sexp expressions separated by + and -
- *
- * exp:      sexp  ('fi' sexp)*
- */
-static enum parser_status parse_fi(struct ast **res, struct lexer *lexer)
-{
-    enum parser_status status = parse_then(res, lexer);
-    if (status != PARSER_OK)
-        return status;
-
-    while (true)
-    {
-        // have a look at the type of the next token. Stop if not interested
-        struct token *tok = lexer_peek(lexer);
-        if (tok->type != TOKEN_FI)
-            return PARSER_OK;
-
-        // make the new ast node and discard the token
-        struct ast *new_ast;
-        if (tok->type == TOKEN_FI)
-            new_ast = ast_new(AST_FI);
-        token_free(lexer_pop(lexer));
-
-        // attach the new node to the ast
-        new_ast->left = *res;
-        *res = new_ast;
-
-        // parse the stuff at the right
-        if ((status = parse_then(&new_ast->right, lexer)) != PARSER_OK)
-            return status;
-    }
-}
-
-/**
- * \brief Parse sexp expressions separated by + and -
- *
- * exp:      sexp  ('then' sexp)*
- */
-static enum parser_status parse_then(struct ast **res, struct lexer *lexer)
-{
-    enum parser_status status = parse_if(res, lexer);
-    if (status != PARSER_OK)
-        return status;
-
-    while (true)
-    {
-        // have a look at the type of the next token. Stop if not interested
-        struct token *tok = lexer_peek(lexer);
-        if (tok->type != TOKEN_THEN)
-            return PARSER_OK;
-
-        // make the new ast node and discard the token
-        struct ast *new_ast;
-        if (tok->type == TOKEN_THEN)
-            new_ast = ast_new(AST_THEN);
-                // attach the new node to the ast
-        new_ast->left = *res;
-        *res = new_ast;
-
-        // parse the stuff at the right
-        if ((status = parse_if(&new_ast->right, lexer)) != PARSER_OK)
-            return status;
-    }
-}
-
-
-
-/**
- * \brief Parse sexp expressions separated by + and -
- *
- * exp:      sexp  ('if' sexp | 'elif' sexp | 'else' sexp)*
- */
-static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
-{
-    enum parser_status status = parse_sq(res, lexer);
-    if (status != PARSER_OK)
-        return status;
-
-    while (true)
-    {
-        // have a look at the type of the next token. Stop if not interested
-        struct token *tok = lexer_peek(lexer);
-        if (tok->type != TOKEN_IF && tok->type != TOKEN_ELIF && tok->type != TOKEN_ELSE)
-            return PARSER_OK;
-
-        // make the new ast node and discard the token
-        struct ast *new_ast;
-        if (tok->type == TOKEN_IF)
-            new_ast = ast_new(AST_IF);
-        // ajouter le elif comme branche du if s'il existe, sinon err////////
-        if (tok->type == TOKEN_ELIF)
-            new_ast = ast_new(AST_ELIF);
-        else
-            new_ast = ast_new(AST_ELSE);
-        token_free(lexer_pop(lexer));
-
-        // attach the new node to the ast
-        new_ast->left = *res;
-        *res = new_ast;
-
-        // parse the stuff at the right
-        if ((status = parse_sq(&new_ast->right, lexer)) != PARSER_OK)
-            return status;
-    }
-}
-
-/**
- * \brief Parse sexp expressions separated by + and -
- *
- * exp:      sexp  (" ' " sexp)*
- */
-static enum parser_status parse_sq(struct ast **res, struct lexer *lexer)
-{
-    enum parser_status status = parse_pv(res, lexer);
-    if (status != PARSER_OK)
-        return status;
-
-    while (true)
-    {
-        // have a look at the type of the next token. Stop if not interested
-        struct token *tok = lexer_peek(lexer);
-        if (tok->type != TOKEN_SQ)
-            return PARSER_OK;
-
-        // make the new ast node and discard the token
-        struct ast *new_ast;
-        if (tok->type == TOKEN_SQ)
-            new_ast = ast_new(AST_SQ);
-        token_free(lexer_pop(lexer));
-
-        // attach the new node to the ast
-        new_ast->left = *res;
-        *res = new_ast;
-
-        // parse the stuff at the right
-        if ((status = parse_pv(&new_ast->right, lexer)) != PARSER_OK)
-            return status;
-    }
-}
-
-///////renommer fonction
+//static enum parser_status parse_pv(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_fi(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_PV)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_PV)
+//            new_ast = ast_new(AST_PV);
+//        token_free(lexer_pop(lexer));
+//
+//        // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_fi(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+//
+///**
+// * \brief Parse sexp expressions separated by + and -
+// *
+// * exp:      sexp  ('fi' sexp)*
+// */
+//static enum parser_status parse_fi(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_then(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_FI)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_FI)
+//            new_ast = ast_new(AST_FI);
+//        token_free(lexer_pop(lexer));
+//
+//        // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_then(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+//
+///**
+// * \brief Parse sexp expressions separated by + and -
+// *
+// * exp:      sexp  ('then' sexp)*
+// */
+//static enum parser_status parse_then(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_if(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_THEN)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_THEN)
+//            new_ast = ast_new(AST_THEN);
+//                // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_if(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+//
+//
+//
+///**
+// * \brief Parse sexp expressions separated by + and -
+// *
+// * exp:      sexp  ('if' sexp | 'elif' sexp | 'else' sexp)*
+// */
+//static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_sq(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_IF && tok->type != TOKEN_ELIF && tok->type != TOKEN_ELSE)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_IF)
+//            new_ast = ast_new(AST_IF);
+//        // ajouter le elif comme branche du if s'il existe, sinon err////////
+//        if (tok->type == TOKEN_ELIF)
+//            new_ast = ast_new(AST_ELIF);
+//        else
+//            new_ast = ast_new(AST_ELSE);
+//        token_free(lexer_pop(lexer));
+//
+//        // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_sq(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+//
+///**
+// * \brief Parse sexp expressions separated by + and -
+// *
+// * exp:      sexp  (" ' " sexp)*
+// */
+//static enum parser_status parse_sq(struct ast **res, struct lexer *lexer)
+//{
+//    enum parser_status status = parse_pv(res, lexer);
+//    if (status != PARSER_OK)
+//        return status;
+//
+//    while (true)
+//    {
+//        // have a look at the type of the next token. Stop if not interested
+//        struct token *tok = lexer_peek(lexer);
+//        if (tok->type != TOKEN_SQ)
+//            return PARSER_OK;
+//
+//        // make the new ast node and discard the token
+//        struct ast *new_ast;
+//        if (tok->type == TOKEN_SQ)
+//            new_ast = ast_new(AST_SQ);
+//        token_free(lexer_pop(lexer));
+//
+//        // attach the new node to the ast
+//        new_ast->left = *res;
+//        *res = new_ast;
+//
+//        // parse the stuff at the right
+//        if ((status = parse_pv(&new_ast->right, lexer)) != PARSER_OK)
+//            return status;
+//    }
+//}
+//
+/////////renommer fonction
