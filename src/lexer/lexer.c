@@ -49,15 +49,22 @@ static char *segment_input(struct lexer *lexer, size_t start, size_t end)
 
 int my_isspace(char c)
 {
-    return c == ';' ||c == 32 || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\0' || c == '\n';
+    return c == ';' || c == 32 || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\0' || c == '\n';
+}
+int is_sp_comm_end(char c)
+{
+    return c == ';' || c == '\n' || c == '\0';
 }
 
 struct token *lexer_peek(struct lexer *lexer)
 {
+    /*returns the same token if one is already present */
     if (lexer->current_tok)
     {
         return lexer->current_tok;
     }
+
+
     struct token *toke = calloc(1, sizeof(struct token));
     if (!toke)
     {
@@ -68,12 +75,23 @@ struct token *lexer_peek(struct lexer *lexer)
     {
         lexer->pos = lexer->pos + 1;
     }
-    size_t word_start = lexer->pos;
-    while (!my_isspace(lexer->input[lexer->pos]))
+
+    size_t word_start = 0;
+    size_t word_end = 0;
+    if (!is_sp_comm_end(lexer->input[lexer->pos]))
     {
-        lexer->pos++;
+        word_start = lexer->pos;
+        while (!my_isspace(lexer->input[lexer->pos]))
+        {
+            lexer->pos++;
+        }
+        word_end = lexer->pos;
     }
-    size_t word_end = lexer->pos;
+    else
+    {
+        word_start = lexer->pos;
+        word_end = ++lexer->pos;
+    }
     char *value = segment_input(lexer, word_start, word_end);
 
     /* compare the word with eventually a token*/
@@ -102,7 +120,7 @@ struct token *lexer_peek(struct lexer *lexer)
         toke->type = TOKEN_SQ;
         toke->value = value;
     }
-    else if (strcmp(";", value) == 0)
+    else if (*value ==  ';')
     {
         toke->type = TOKEN_PV;
         toke->value = value;

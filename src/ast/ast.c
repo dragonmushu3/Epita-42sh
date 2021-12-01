@@ -17,22 +17,30 @@ void ast_free(struct ast *ast)
 {
     if (ast == NULL)
         return;
-    int child = 0;
-    while (ast->children[child] != NULL)
+    /*if the ast has allocated children, free them recursively */
+    if (ast->children)
     {
-        ast_free(ast->children[child]);
-        ast->children[child] = NULL;
-        child++;
+        int child = 0;
+        while (ast->children[child])
+        {
+            ast_free(ast->children[child]);
+            child++;
+        }
+        free(ast->children);
     }
 
-
-    size_t i = 0;
-    while (ast->data[i])
+    /*if the ast has allocated data, free it*/
+    if (ast->data)
     {
-        free(ast->data[i]);
-        i++;
+        size_t i = 0;
+        while (ast->data[i])
+        {
+            free(ast->data[i]);
+            i++;
+        }
+        free(ast->data);
     }
-    free(ast->data);
+
     free(ast);
 }
 
