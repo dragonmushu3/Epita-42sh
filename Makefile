@@ -1,4 +1,4 @@
-CPPFLAGS = -I src/lexer -I src/parser -I src/ast -I src/utils -I src/exec -MMD
+CPPFLAGS = -MMD
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c99 -D_DEFAULT_SOURCE -fsanitize=address -g
 LDFLAGS = -fsanitize=address
@@ -12,9 +12,9 @@ SRC = lexer.c ast.c parser.c token.c 42sh.c exec_ast.c
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
 
-42sh: $(OBJ)
-
-
+42sh:
+	meson setup builddir
+	ninja -C builddir
 
 
 
