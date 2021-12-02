@@ -52,16 +52,36 @@ void print_ast(struct ast *ast)
     if (ast->type == AST_SIMPLE_COMM)
     {
         size_t i = 0;
-        while (ast->data[i])
+        if (ast->data)
         {
-            if (!ast->data[i+1])
+            while (ast->data[i])
             {
-                printf("[%s]", ast->data[i]);
-                i++;
+                if (!ast->data[i+1])
+                {
+                    printf("[%s]", ast->data[i]);
+                    i++;
+                }
+                else
+                {
+                    printf("[%s] ", ast->data[i]);
+                    i++;
+                }
             }
-            else
+        }
+        else
+        {
+            printf("[null]");
+        }
+    }
+    else if (ast->type == AST_COMM)
+    {
+        if (ast->children)
+        {
+            size_t i = 0;
+            while (ast->children[i])
             {
-                printf("[%s] ", ast->data[i]);
+                print_ast(ast->children[i]);
+                putchar(';');
                 i++;
             }
         }
