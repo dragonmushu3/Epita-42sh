@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "../ast/ast.h"
 #include <err.h>
 #include <unistd.h>
 #include <sys/wait.h>

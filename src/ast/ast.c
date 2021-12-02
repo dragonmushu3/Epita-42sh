@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "alloc.h"
+#include "../utils/alloc.h"
 
 struct ast *ast_new(enum ast_type type)
 {

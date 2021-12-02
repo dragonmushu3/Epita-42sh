@@ -1,5 +1,5 @@
 #include "parser.h"
-#include "alloc.h"
+#include "../utils/alloc.h"
 
 #include <err.h>
 #include <stdio.h>

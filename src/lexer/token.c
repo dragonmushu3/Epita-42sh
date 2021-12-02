@@ -3,7 +3,7 @@
 #include <err.h>
 #include <stdlib.h>
 
-#include "alloc.h"
+#include "../utils/alloc.h"
 
 struct token *token_new(enum token_comm type)
 {

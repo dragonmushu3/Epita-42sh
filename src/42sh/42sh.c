@@ -7,10 +7,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "lexer.h"
-#include "parser.h"
-#include "ast.h"
-#include "exec_ast.h"
+#include "../lexer/lexer.h"
+#include "../parser/parser.h"
+#include "../ast/ast.h"
+#include "../exec/exec_ast.h"
 
 static int parse_and_exec(char *line)
 {
