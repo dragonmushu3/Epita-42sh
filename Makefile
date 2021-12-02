@@ -15,6 +15,8 @@ DEP = ${SRC:.c=.d}
 42sh:
 	meson setup builddir
 	ninja -C builddir
+check: 42sh
+	./tests/print_test.sh
 
 
 
