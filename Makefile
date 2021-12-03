@@ -25,4 +25,5 @@ check: 42sh
 
 clean:
 	$(RM) ${OBJ} ${DEP} ${PRG}
-	$(RM) tests/*.o tests/*.d
+	$(RM) tests/*.o tests/*.d tests/sh_output tests/42sh_output
+	$(RM) -r builddir
