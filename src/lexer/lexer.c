@@ -89,8 +89,16 @@ struct token *lexer_peek(struct lexer *lexer)
     }
     else
     {
-        word_start = lexer->pos;
-        word_end = ++lexer->pos;
+        if (lexer->input[lexer->pos] == '\0')
+        {
+            word_start = lexer->pos;
+            word_end = lexer->pos + 1;
+        }
+        else
+        {
+            word_start = lexer->pos;
+            word_end = ++lexer->pos;
+        }
     }
     char *value = segment_input(lexer, word_start, word_end);
 

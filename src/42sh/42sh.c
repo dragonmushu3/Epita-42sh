@@ -24,9 +24,10 @@ static int parse_and_exec(char *line)
         return 1;
     }
 
-    //print_ast(ast);
-    exec_ast(ast);
+    print_ast(ast);
+    //exec_ast(ast);
 
+    printf("\n");
     ast_free(ast);
     lexer_free(lexer);
 
