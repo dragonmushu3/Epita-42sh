@@ -89,17 +89,21 @@ void print_ast(struct ast *ast)
     else if (ast->type == AST_IF)
     {
         printf("if ");
-        putchar(')');
+        putchar('(');
         print_ast(ast->children[0]);
         putchar(')');
 
-        printf("then (");
+        printf("; then (");
         print_ast(ast->children[1]);
         putchar(')');
 
-        printf("else (");
-        print_ast(ast->children[2]);
-        putchar(')');
+        if (ast->children[2])
+        {    
+            printf("; else (");
+            print_ast(ast->children[2]);
+            putchar(')');
+        }
+        printf("; fi");
      }
 //    else if (ast->type == AST_PIPE)
 //    {

@@ -221,9 +221,10 @@ enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
  */
 static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
 {
-    struct token *tok = lexer_peek(lexer);
+    struct token *tok = NULL;
     struct ast *ast_if = ast_new(AST_IF);
-    ast_if->children = malloc(sizeof(struct ast) * 3);
+    ast_if->children = malloc(sizeof(struct ast) * 4);
+    ast_if->children[3] = NULL;
     if (!ast_if->children)
     {
         return 0;
@@ -237,9 +238,8 @@ static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
     else
     {
         /*if parse_simple_comm failed*/
-        warnx("syntax error near unexpected token '%s'", tok->value);
-        free(tok->value);
-        token_free(lexer_pop(lexer));
+        /*it should be sp coms jobs to print out relevant info*/
+        warnx("syntax error");
         return PARSER_UNEXPECTED_TOKEN;
     }
     tok = lexer_peek(lexer);
@@ -254,9 +254,7 @@ static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
         else
         {
             /*if parse_simple_comm failed*/
-            warnx("syntax error near unexpected token '%s'", tok->value);
-            free(tok->value);
-            token_free(lexer_pop(lexer));
+            warnx("syntax error");
             return PARSER_UNEXPECTED_TOKEN;
         }
     }
@@ -280,18 +278,50 @@ static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
         else
         {
             /*if parse_simple_comm failed*/
-            warnx("syntax error near unexpected token '%s'", tok->value);
-            free(tok->value);
-            token_free(lexer_pop(lexer));
+            warnx("syntax error");
             return PARSER_UNEXPECTED_TOKEN;
         }
-        tok = lexer_peek(lexer);
     }
+    else if (tok->type == TOKEN_ELIF)
+    {
+        free(tok->value);
+        token_free(lexer_pop(lexer));
+        if (parse_if(res, lexer) == PARSER_OK)
+        {
+            ast_if->children[2] = *res;
+            *res = ast_if;
+            return PARSER_OK;
+        }
+        else
+        {
+            /*if parse_if failed*/
+            warnx("syntax error");
+            return PARSER_UNEXPECTED_TOKEN;
+        }
+    }
+    else if (tok->type == TOKEN_FI)
+    {
+        ast_if->children[2] = NULL;
+        free(tok->value);
+        token_free(lexer_pop(lexer));
+        *res = ast_if;
+        return PARSER_OK;
+    }
+    else
+    {
+        /*if there is no fi*/
+        warnx("syntax error near unexpected token '%s'", tok->value);
+        free(tok->value);
+        token_free(lexer_pop(lexer));
+        return PARSER_UNEXPECTED_TOKEN;
+    }
+
+    /*we would only come here from an else*/
+    tok = lexer_peek(lexer);
     if (tok->type == TOKEN_FI)
     {
         free(tok->value);
         token_free(lexer_pop(lexer));
-        ast_if->children[2] = NULL;
         *res = ast_if;
         return PARSER_OK;
     }
