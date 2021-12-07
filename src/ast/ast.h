@@ -13,6 +13,9 @@ enum ast_type
     AST_THEN,
     AST_IF,
     AST_ELIF,
+    AST_REDIR,
+    AST_NEGATION
+    AST_PUIPELINE,
     AST_ELSE,
     AST_SQ
 };
