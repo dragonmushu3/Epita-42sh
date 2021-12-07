@@ -24,11 +24,9 @@ static int parse_and_exec(char *line)
         return 1;
     }
 
-    print_ast(ast);
-    printf("\n");
-    int res_exec = exec_ast(ast);
-    if (res_exec == 666)
-        return 666;
+    //print_ast(ast);
+    //printf("\n");
+    exec_ast(ast);
 
     ast_free(ast);
     lexer_free(lexer);

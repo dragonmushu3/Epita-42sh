@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static int execute_in_child(char **args)
 {
@@ -43,20 +45,24 @@ int exec_ast(struct ast *ast)
 
     if (ast->type == AST_SIMPLE_COMM)
     {
-        //size_t i = 0;
-        //if (!strcmp(ast->data[i], "echo"))
-        //{
-        //    i++;
-        //    my_echo_simple_comm(ast ,i);
-        //}
-        //if (!strcmp(ast->data[i], "exit"))
-        //    return 666;
+        size_t i = 0;
+        if (!strcmp(ast->data[i], "echo"))
+        {
+            i++;
+            my_echo(ast, i);
+            return 0;
+        }
+        if (!strcmp(ast->data[i], "exit"))
+            exit(EXIT_SUCCESS);
 
         /*this could be put in a sub_function called exec_ast_simple_comm*/
         /*check if it's echo or other built-in or it won't work*/
         /*fix me*/
         //execute_in_child(ast->data);
-        return execute_in_child(ast->data);
+        else
+        {
+            return execute_in_child(ast->data);
+        }
     }
     else if (ast->type == AST_LIST)
     {
@@ -80,13 +86,10 @@ int exec_ast(struct ast *ast)
     else if (ast->type == AST_IF)
     {
         if (exec_ast(ast->children[0]) == 0)
-        {
             return exec_ast(ast->children[1]);
-        }
-        else 
-        {
+
+        else
             return exec_ast(ast->children[2]);
-        }
     }
     else
     {
