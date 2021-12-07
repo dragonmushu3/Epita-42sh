@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <getopt.h>
 
 #include "../lexer/lexer.h"
 #include "../parser/parser.h"
@@ -55,6 +56,23 @@ int main(int argc, char *argv[])
         free(line);
         return 0;
     }
+
+    int pretty_print = 0;
+    int command = 0;
+    int option_index = 0;
+    int opt = 0;
+    static struct option long_options[] =
+    {
+        {"pretty_print", no_argument, &pretty_print, 1},
+        {0, 0, 0, 0}
+    };
+
+    while (opt = getopt_long(argc, argv, "c", long_options, &option_index) != -1)
+    {
+
+    }
+
+
 
     if (strcmp(argv[1], "-c") != 0)
     {
