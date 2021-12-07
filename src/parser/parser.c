@@ -19,7 +19,6 @@ static enum parser_status parse_sq(struct ast **res, struct lexer *lexer);
 static enum parser_status handle_parse_error(enum parser_status status,
                                              struct ast **res)
 {
-    warnx("unexpected token");
     ast_free(*res);
     *res = NULL;
     return status;
@@ -93,7 +92,6 @@ static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
     {
         /*if parse_simple_comm failed*/
         /*it should be sp coms jobs to print out relevant info*/
-        warnx("syntax error");
         return PARSER_UNEXPECTED_TOKEN;
     }
     tok = lexer_peek(lexer);
@@ -108,14 +106,14 @@ static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
         else
         {
             /*if parse_simple_comm failed*/
-            warnx("syntax error");
+            warnx("Incomplete input");
             return PARSER_UNEXPECTED_TOKEN;
         }
     }
     else
     {
         /*if there is no then*/
-        warnx("syntax error near unexpected token '%s'", tok->value);
+        warnx("Incomplete input");
         free(tok->value);
         token_free(lexer_pop(lexer));
         return PARSER_UNEXPECTED_TOKEN;
@@ -132,7 +130,6 @@ static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
         else
         {
             /*if parse_simple_comm failed*/
-            warnx("syntax error");
             return PARSER_UNEXPECTED_TOKEN;
         }
     }
@@ -149,7 +146,6 @@ static enum parser_status parse_if(struct ast **res, struct lexer *lexer)
         else
         {
             /*if parse_if failed*/
-            warnx("syntax error");
             return PARSER_UNEXPECTED_TOKEN;
         }
     }
@@ -201,6 +197,7 @@ enum parser_status parse_shell_comm(struct ast **res, struct lexer *lexer)
     struct token *tok = lexer_peek(lexer);
     if (tok->type != TOKEN_IF)
     {
+        /*this just means that it isn't a rule if*/
         return PARSER_UNEXPECTED_TOKEN;
     }
     else
