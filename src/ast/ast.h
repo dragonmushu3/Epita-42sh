@@ -4,6 +4,7 @@
 
 enum ast_type
 {
+    AST_LIST,
     AST_COMM,
     AST_SIMPLE_COMM,
     AST_PIPE,

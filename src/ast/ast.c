@@ -73,7 +73,7 @@ void print_ast(struct ast *ast)
             printf("[null]");
         }
     }
-    else if (ast->type == AST_COMM)
+    else if (ast->type == AST_LIST)
     {
         if (ast->children)
         {
@@ -86,17 +86,25 @@ void print_ast(struct ast *ast)
             }
         }
     }
-//    else if (ast->type == AST_IF)
-//    {
-//        printf("if ");
-//        putchar(')');
-//        print_ast(ast->left);
-//        putchar(')');
-//
-//        printf("then (");
-//        print_ast(ast->right);
-//        putchar(')');
-//    }
+    else if (ast->type == AST_IF)
+    {
+        printf("if ");
+        putchar('(');
+        print_ast(ast->children[0]);
+        putchar(')');
+
+        printf("; then (");
+        print_ast(ast->children[1]);
+        putchar(')');
+
+        if (ast->children[2])
+        {    
+            printf("; else (");
+            print_ast(ast->children[2]);
+            putchar(')');
+        }
+        printf("; fi");
+     }
 //    else if (ast->type == AST_PIPE)
 //    {
 //        print_ast(ast->left);
