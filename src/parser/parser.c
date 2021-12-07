@@ -375,7 +375,7 @@ static enum parser_status parse_redirection(struct ast **res, struct lexer *lexe
     }
 
     /*it is a digit, append in children[0]*/
-    /*///////bug potentiel lexer insere un char*/`
+    /*///////bug potentiel lexer insere un char et non un char * ?? */`
     ast_redir->children[0] = tok->value;
 
     if (tok->type == TOKEN_REDIRECTION)
@@ -395,6 +395,8 @@ static enum parser_status parse_redirection(struct ast **res, struct lexer *lexe
             warnx("syntax error near unexpected token `newline'");
             free(tok->value);
             token_free(lexer_pop(lexer));
+            free(ast_redir->children[0]);
+            free(ast_redir);
             return PARSER_UNEXPECTED_TOKEN;
         }
     }
@@ -403,7 +405,8 @@ static enum parser_status parse_redirection(struct ast **res, struct lexer *lexe
     {
         /*if there is no redirection, return an ast_simple_comm*/
         struct ast *sp_comm = ast_redir->children[0];
-        sp_comm->data = malloc(sizeof(char *) * 1);
+        ast_redir->children[0] = NULL;
+        free(ast_redir);
         /*return OK, because it's a good simple_comm*/
         return PARSER_OK;
     }
