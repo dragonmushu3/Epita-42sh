@@ -12,7 +12,6 @@ enum token_lecture
 /*est ce une commande ?*/
 enum token_comm
 {
-    TOKEN_IONUMBER, /* 0 1 2 3 4 5 6 7 8 9 , using in redirection*/
     TOKEN_IF, /*  if  */
     TOKEN_THEN, /*  then  */
     TOKEN_ELIF, /*   elif  */
@@ -22,9 +21,6 @@ enum token_comm
     TOKEN_NL, /*  New Line       \n  */
     TOKEN_SQ, /*  Simple Quote   '   */
     TOKEN_EOF, /* End Of File    \0  */
-    TOKEN_NEGATION, /* not       !   */
-    TOKEN_PIPELINE, /* or        |   */
-    TOKEN_REDIRECTION, /* >  >>  <  <<  <<-  >&  <&  >|  <> */
     TOKEN_OTHER, /*  words  */
 };
 struct token

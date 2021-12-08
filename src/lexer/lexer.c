@@ -49,8 +49,7 @@ static char *segment_input(struct lexer *lexer, size_t start, size_t end)
 
 int my_isspace(char c)
 {
-    return c == ';' || c == 32 || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\0' || c == '\n' || c == '"' || c == 39;
-    /*c == 39 <=> c == ' */
+    return c == ';' || c == 32 || c == '\t' || c == '\r' || c == '\f' || c == '\v' || c == '\0' || c == '\n';
 }
 int is_sp_comm_end(char c)
 {
@@ -76,53 +75,10 @@ struct token *lexer_peek(struct lexer *lexer)
     {
         lexer->pos = lexer->pos + 1;
     }
-    if ((lexer->input[lexer->pos] >= '0') && (lexer->input[lexer->pos] <= '9') && (lexer->input[lexer->pos + 1] > '9') && (lexer->input[lexer->pos + 1] < '0'))
-    {
-        toke->type = TOKEN_IONUMBER;
-        toke->value = segment_input(lexer, lexer->pos, lexer->pos);
-        lexer->pos++;
-        lexer->current_tok = toke;
-        return toke;
-    }
 
     size_t word_start = 0;
     size_t word_end = 0;
-    char *lexer_input_pos = segment_input(lexer, word_start, word_end);
-    if (lexer->input[lexer->pos] == '"')
-    {
-        /* + 1 to ignore the " of begin*/
-        word_start = lexer->pos + 1;
-        /*eat the " open*/
-        lexer->pos++;
-        while (lexer->input[lexer->pos] != '"')
-        {
-            lexer->pos++;
-        }
-        /*eat the " close*/
-        lexer->pos++;
-        /* - 1 to ignore the " of end*/
-        word_end = lexer->pos - 1;
-        toke->type = TOKEN_OTHER;
-        toke->value = segment_input(lexer, word_start, word_end);
-        lexer->current_tok = toke;
-        return toke;
-    }
-    else if (strcmp(lexer_input_pos,"'"))
-    {
-        word_start = lexer->pos + 1;
-        while (strcmp(lexer_input_pos, "'"))
-        {
-            lexer->pos++;
-            lexer_input_pos = segment_input(lexer, lexer->pos, lexer->pos);
-        }
-        word_end = lexer->pos - 1;
-        toke->type = TOKEN_OTHER;
-        toke->value = segment_input(lexer, word_start, word_end);
-        lexer->current_tok = toke;
-        return toke;
-
-    }
-    else if (!is_sp_comm_end(lexer->input[lexer->pos]))
+    if (!is_sp_comm_end(lexer->input[lexer->pos]))
     {
         word_start = lexer->pos;
         while (!my_isspace(lexer->input[lexer->pos]))
@@ -131,7 +87,6 @@ struct token *lexer_peek(struct lexer *lexer)
         }
         word_end = lexer->pos;
     }
-
     else
     {
         if (lexer->input[lexer->pos] == '\0')
@@ -168,12 +123,11 @@ struct token *lexer_peek(struct lexer *lexer)
         toke->type = TOKEN_FI;
         toke->value = value;
     }
-    /*it is useless, this case is treated at the top between 2 quotes*/
-    /*else if (strcmp("'", value) == 0)
+    else if (strcmp("'", value) == 0)
     {
         toke->type = TOKEN_SQ;
         toke->value = value;
-    }*/
+    }
     else if (*value ==  ';')
     {
         toke->type = TOKEN_PV;
@@ -194,21 +148,7 @@ struct token *lexer_peek(struct lexer *lexer)
         toke->type = TOKEN_EOF;
         toke->value = value;
     }
-    else if (*value == '!')
-    {
-        toke->type = TOKEN_NEGATION;
-        toke->value = value;
-    }
-    else if (*value == '|')
-    {
-        toke->type = TOKEN_PIPELINE;
-        toke->value = value;
-    }
-    else if (strcmp(value, ">") || strcmp(value, "<") || strcmp(value, ">>") || strcmp(value, "<<") || strcmp(value, "<<-") || strcmp(value, ">&") || strcmp(value, "<&") || strcmp(value, ">|") || strcmp(value, "><"))
-    {
-        toke->type = TOKEN_REDIRECTION;
-        toke->value = value;
-    }    else
+    else
     {
         toke->type = TOKEN_OTHER;
         toke->value = value;
