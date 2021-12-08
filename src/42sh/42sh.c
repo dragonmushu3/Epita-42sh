@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <getopt.h>
 
 #include "../lexer/lexer.h"
@@ -13,7 +14,7 @@
 #include "../ast/ast.h"
 #include "../exec/exec_ast.h"
 
-static int parse_and_exec(char *line)
+static int parse_and_exec(char *line, int pretty_print)
 {
     struct lexer *lexer = lexer_new(line);
 
@@ -25,8 +26,12 @@ static int parse_and_exec(char *line)
         return 1;
     }
 
-    print_ast(ast);
-    printf("\n");
+    if (pretty_print)
+    {
+        print_ast(ast);
+        printf("\n");
+    }
+
     int res_exec = exec_ast(ast);
     if (res_exec == 666)
         return 666;
@@ -39,7 +44,53 @@ static int parse_and_exec(char *line)
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2)
+    int pretty_print_flag = 0;
+    int read_string_flag = 0;
+
+    int option_index = 0;
+    int opt = 0;
+    static struct option long_options[] =
+    {
+        {"pretty-print", no_argument, 0, 2},
+        {0, 0, 0, 0}
+    };
+
+    while (opt != -1)
+    {
+        opt = getopt_long(argc, argv, "c", long_options, &option_index);
+        if (opt == 2)
+            pretty_print_flag = 1;
+        if (opt == 'c')
+            read_string_flag = 1;
+    }
+
+    if (!read_string_flag && argv[optind])
+    {
+        //parse and execute text from file in argv[optind] FIX ME
+        char *line = NULL;
+        size_t n = 0;
+        int nread = 0;
+
+        FILE *file = fopen(argv[optind], "r");
+        if (!file)
+            err(1, "0");
+        while ((nread = getline(&line, &n, file)) != -1)
+        {
+            if (parse_and_exec(line, pretty_print_flag) == -1)
+                errx(1, "parsing failed: %.*s", nread, line);
+        }
+        free(line);
+        fclose(file);
+        return 0;
+    }
+    else if (read_string_flag)
+    {
+        //parse and execute the string argument in argv[2]
+        if (parse_and_exec(argv[optind], pretty_print_flag) == -1)
+            errx(1, "parsing failed: %s", argv[optind]);
+        return 0;
+    }
+    else
     {
         //read stdin and parse the lines
         printf("42sh$ ");
@@ -49,55 +100,11 @@ int main(int argc, char *argv[])
         while ((nread = getline(&line, &n, stdin)) != -1)
         {
             /*parse and execute lines FIX ME*/
-            if (parse_and_exec(line) == -1)
+            if (parse_and_exec(line, pretty_print_flag) == -1)
                 errx(1, "parsing failed: %.*s", nread, line);
             printf("42sh$ ");
         }
         free(line);
-        return 0;
-    }
-
-    int pretty_print = 0;
-    int command = 0;
-    int option_index = 0;
-    int opt = 0;
-    static struct option long_options[] =
-    {
-        {"pretty_print", no_argument, &pretty_print, 1},
-        {0, 0, 0, 0}
-    };
-
-    while (opt = getopt_long(argc, argv, "c", long_options, &option_index) != -1)
-    {
-
-    }
-
-
-
-    if (strcmp(argv[1], "-c") != 0)
-    {
-        //parse and execute text from file in argv[1] FIX ME
-        char *line = NULL;
-        size_t n = 0;
-        int nread = 0;
-
-        FILE *file = fopen(argv[1], "r");
-        if (!file)
-            err(1, "0");
-        while ((nread = getline(&line, &n, file)) != -1)
-        {
-            if (parse_and_exec(line) == -1)
-                errx(1, "parsing failed: %.*s", nread, line);
-        }
-        free(line);
-        fclose(file);
-        return 0;
-    }
-    else
-    {
-        //parse and execute the string argument in argv[2]
-        if (parse_and_exec(argv[2]) == -1)
-            errx(1, "parsing failed: %s", argv[2]);
         return 0;
     }
 }
