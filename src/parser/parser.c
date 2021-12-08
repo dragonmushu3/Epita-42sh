@@ -353,63 +353,6 @@ static enum parser_status parse_list(struct ast **res, struct lexer *lexer)
 //
 //
 
-/**
- * \brief Parse sexp expressions separated by + and -
- *
- * exp:      sexp  ('if' sexp | 'elif' sexp | 'else' sexp)*
- *
- * ast->data : symbole of redirection
- * children 0 : ionumber
- * children 1 : word
- */
-static enum parser_status parse_redirection(struct ast **res, struct lexer *lexer)
-{
-    struct token *tok = lexer_peek(lexer);
-    if (tok->type != TOKEN_IONUMBER)
-        return PARSER_UNEXPECTED_TOKEN;
-    struct ast *ast_redir = ast_new(AST_REDIR);
-    ast_redir->children = malloc(sizeof(struct ast) * 2);
-    if (!ast_redir->children)
-    {
-        return 0;
-    }
-
-    /*it is a digit, append in children[0]*/
-    /*///////bug potentiel lexer insere un char*/`
-    ast_redir->children[0] = tok->value;
-
-    if (tok->type == TOKEN_REDIRECTION)
-    {
-        ast_redir->data = &tok->value;
-        free(tok->value);
-        token_free(lexer_pop(lexer));
-        if (parse_simple_comm(res, lexer) == PARSER_OK)
-        {
-            ast_redir->children[1] = *res;
-            *res = ast_redir;
-            return PARSER_OK
-        }
-        else
-        {
-            /*if parse_simple_comm failed*/
-            warnx("syntax error near unexpected token `newline'");
-            free(tok->value);
-            token_free(lexer_pop(lexer));
-            return PARSER_UNEXPECTED_TOKEN;
-        }
-    }
-
-    else
-    {
-        /*if there is no redirection, return an ast_simple_comm*/
-        struct ast *sp_comm = ast_redir->children[0];
-        sp_comm->data = malloc(sizeof(char *) * 1);
-        /*return OK, because it's a good simple_comm*/
-        return PARSER_OK;
-    }
-    return PARSER_UNEXPECTED_TOKEN;
-}
-
 
 
 /* from TOKEN_LESS_PRIORITY
