@@ -23,7 +23,7 @@ enum token_comm
     TOKEN_SQ, /*  Simple Quote   '   */
     TOKEN_EOF, /* End Of File    \0  */
     TOKEN_NEGATION, /* not       !   */
-    TOKEN_PIPELINE, /* or        |   */
+    TOKEN_PIPE, /* or        |   */
     TOKEN_REDIRECTION, /* >  >>  <  <<  <<-  >&  <&  >|  <> */
     TOKEN_OTHER, /*  words  */
 };

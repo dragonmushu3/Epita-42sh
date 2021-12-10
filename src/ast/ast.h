@@ -7,7 +7,6 @@ enum ast_type
     AST_WORD,
     AST_LIST,
     AST_SIMPLE_COMM,
-    AST_PIPE,
     AST_PV,
     AST_FI,
     AST_THEN,

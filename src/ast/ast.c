@@ -117,12 +117,40 @@ void print_ast(struct ast *ast)
         }
         printf(" fi");
      }
-//    else if (ast->type == AST_PIPE)
-//    {
-//        print_ast(ast->left);
-//        printf(" | ");
-//        print_ast(ast->right);
-//    }
+    else if (ast->type == AST_PIPELINE)
+    {
+        if (ast->children)
+        {
+            size_t i = 0;
+            while (ast->children[i])
+            {
+                if (!ast->children[i + 1])
+                {
+                    print_ast(ast->children[i]);
+                    i++;
+                }
+                else
+                {
+                    print_ast(ast->children[i]);
+                    printf(" | ");
+                    i++;
+                }
+            }
+        }
+        else
+        {
+            printf("This pipeline has no children table!");
+        }
+    }
+    else if (ast->type == AST_NEGATION)
+    {
+        if (ast->children)
+        {
+            putchar('!');
+            putchar(32);
+            print_ast(ast->children[0]);
+        }
+    }
     else
     {
         printf("don't know this one yet");
