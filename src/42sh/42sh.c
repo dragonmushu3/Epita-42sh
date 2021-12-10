@@ -14,7 +14,7 @@
 #include "../ast/ast.h"
 #include "../exec/exec_ast.h"
 
-static int parse_and_exec(char *line, int pretty_print)
+static int parse_and_exec(char *line, int pretty_print, int no_exec)
 {
     struct lexer *lexer = lexer_new(line);
 
@@ -32,9 +32,12 @@ static int parse_and_exec(char *line, int pretty_print)
         printf("\n");
     }
 
-    int res_exec = exec_ast(ast);
-    if (res_exec == 666)
-        return 666;
+    if (!no_exec)
+    {
+        int res_exec = exec_ast(ast);
+        if (res_exec == 666)
+            return 666;
+    }
 
     ast_free(ast);
     lexer_free(lexer);
@@ -45,6 +48,7 @@ static int parse_and_exec(char *line, int pretty_print)
 int main(int argc, char *argv[])
 {
     int pretty_print_flag = 0;
+    int no_exec_flag = 0;
     int read_string_flag = 0;
 
     int option_index = 0;
@@ -52,6 +56,7 @@ int main(int argc, char *argv[])
     static struct option long_options[] =
     {
         {"pretty-print", no_argument, 0, 2},
+        {"no-exec", no_argument, 0, 3},
         {0, 0, 0, 0}
     };
 
@@ -62,6 +67,8 @@ int main(int argc, char *argv[])
             pretty_print_flag = 1;
         if (opt == 'c')
             read_string_flag = 1;
+        if (opt == 3)
+            no_exec_flag = 1;
     }
 
     if (!read_string_flag && argv[optind])
@@ -76,7 +83,7 @@ int main(int argc, char *argv[])
             err(1, "0");
         while ((nread = getline(&line, &n, file)) != -1)
         {
-            if (parse_and_exec(line, pretty_print_flag) == -1)
+            if (parse_and_exec(line, pretty_print_flag, no_exec_flag) == -1)
                 errx(1, "parsing failed: %.*s", nread, line);
         }
         free(line);
@@ -86,7 +93,7 @@ int main(int argc, char *argv[])
     else if (read_string_flag)
     {
         //parse and execute the string argument in argv[2]
-        if (parse_and_exec(argv[optind], pretty_print_flag) == -1)
+        if (parse_and_exec(argv[optind], pretty_print_flag, no_exec_flag) == -1)
             errx(1, "parsing failed: %s", argv[optind]);
         return 0;
     }
@@ -100,7 +107,7 @@ int main(int argc, char *argv[])
         while ((nread = getline(&line, &n, stdin)) != -1)
         {
             /*parse and execute lines FIX ME*/
-            if (parse_and_exec(line, pretty_print_flag) == -1)
+            if (parse_and_exec(line, pretty_print_flag, no_exec_flag) == -1)
                 errx(1, "parsing failed: %.*s", nread, line);
             printf("42sh$ ");
         }
