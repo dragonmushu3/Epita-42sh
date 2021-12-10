@@ -4,3 +4,6 @@ all_sources += files(
 all_sources += files(
   'my_echo.c'
 )
+all_sources += files(
+  'my_cd.c'
+)

@@ -1,5 +1,6 @@
 #include "ast/ast.h"
 #include "my_echo.h"
+#include "../builtin/my_cd.h"
 #include <err.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -49,14 +50,14 @@ int exec_ast(struct ast *ast)
         //    i++;
         //    my_echo_simple_comm(ast ,i);
         //}
-        //if (!strcmp(ast->data[i], "exit"))
-        //    return 666;
-
+        if (!strcmp(ast->data[0], "cd"))
+            return my_cd(ast->data[1]);
         /*this could be put in a sub_function called exec_ast_simple_comm*/
         /*check if it's echo or other built-in or it won't work*/
         /*fix me*/
         //execute_in_child(ast->data);
-        return execute_in_child(ast->data);
+        else
+            return execute_in_child(ast->data);
     }
     else if (ast->type == AST_LIST)
     {
