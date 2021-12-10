@@ -51,22 +51,34 @@ void print_ast(struct ast *ast)
 
     if (ast->type == AST_SIMPLE_COMM)
     {
-        size_t i = 0;
-        if (ast->data)
+        if (ast->children)
         {
-            while (ast->data[i])
+            size_t i = 0;
+            while (ast->children[i])
             {
-                if (!ast->data[i+1])
+                if (!ast->children[i + 1])
                 {
-                    printf("[%s]", ast->data[i]);
+                    print_ast(ast->children[i]);
                     i++;
                 }
                 else
                 {
-                    printf("[%s] ", ast->data[i]);
+                    print_ast(ast->children[i]);
+                    putchar(32);
                     i++;
                 }
             }
+        }
+        else
+        {
+            printf("null");
+        }
+    }
+    else if (ast->type == AST_WORD)
+    {
+        if (ast->data)
+        {
+            printf("[%s]", ast->data[0]);
         }
         else
         {
@@ -93,17 +105,17 @@ void print_ast(struct ast *ast)
         print_ast(ast->children[0]);
         putchar(')');
 
-        printf("; then (");
+        printf(" then (");
         print_ast(ast->children[1]);
         putchar(')');
 
         if (ast->children[2])
         {    
-            printf("; else (");
+            printf(" else (");
             print_ast(ast->children[2]);
             putchar(')');
         }
-        printf("; fi");
+        printf(" fi");
      }
 //    else if (ast->type == AST_PIPE)
 //    {

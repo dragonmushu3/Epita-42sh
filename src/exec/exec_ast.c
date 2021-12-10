@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <stdlib.h>
 
 static int execute_in_child(char **args)
 {
@@ -19,6 +20,7 @@ static int execute_in_child(char **args)
         waitpid(pid, &status, 0);
         if (WIFEXITED(status))
         {
+            free(args);
             if (WEXITSTATUS(status) == 127)
             {
                 warnx("%s: command not found", args[0]);
@@ -30,7 +32,10 @@ static int execute_in_child(char **args)
             }
         }
         else
+        {
+            free(args);
             return 1;
+        }
     }
     return 1;
 }
@@ -43,20 +48,37 @@ int exec_ast(struct ast *ast)
 
     if (ast->type == AST_SIMPLE_COMM)
     {
-        //size_t i = 0;
-        //if (!strcmp(ast->data[i], "echo"))
-        //{
-        //    i++;
-        //    my_echo_simple_comm(ast ,i);
-        //}
-        //if (!strcmp(ast->data[i], "exit"))
-        //    return 666;
+        if (ast->children)
+        {
+            char **data = malloc (sizeof(char *));
+            size_t data_size = sizeof(char *);
+            size_t data_index = 0;
 
-        /*this could be put in a sub_function called exec_ast_simple_comm*/
-        /*check if it's echo or other built-in or it won't work*/
-        /*fix me*/
-        //execute_in_child(ast->data);
-        return execute_in_child(ast->data);
+            size_t i = 0;
+            while (ast->children[i])
+            {
+                if (ast->children[i]->type == AST_WORD)
+                {
+                    data_size += sizeof(char *);
+                    data = realloc(data, data_size);
+                    data[data_index] = ast->children[i]->data[0];
+                    data_index++;
+                    i++;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            data_size += sizeof(char *);
+            data = realloc(data, data_size);
+            data[data_index] = NULL;
+            return execute_in_child(data);
+        }
+        else
+        {
+            return 1;
+        }
     }
     else if (ast->type == AST_LIST)
     {
