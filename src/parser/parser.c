@@ -25,46 +25,185 @@ static enum parser_status handle_parse_error(enum parser_status status,
 }
 
 /**
+ *
+ * redirection: [IONUMBER] '>' WORD
+ *| [IONUMBER] '<' WORD
+ *| [IONUMBER] '>&' WORD
+ *| [IONUMBER] '<&' WORD
+ *| [IONUMBER] '>>' WORD
+ *| [IONUMBER] '<>' WORD
+ *| [IONUMBER] '>|' WORD
+ *
+ *
+ * ast->data : symbole of redirection
+ * data 0 : symbole redirection
+ * children 0 : ionumber
+ * children 1 : word
+ */
+
+static enum parser_status parse_word(struct ast **res, struct lexer *lexer)
+{
+    struct token *tok = lexer_peek(lexer);
+    if (tok->type == TOKEN_EOF || tok->type == TOKEN_PV)
+    {
+        return PARSER_UNEXPECTED_TOKEN;
+    }
+    struct ast *word = ast_new(AST_WORD);
+    size_t data_size = sizeof(char*) * 1;
+    size_t data_index = 0;
+    word->data = malloc(data_size);
+    word->data[data_index] = tok->value;
+    token_free(lexer_pop(lexer));
+    /*null terminate the data*/
+    data_size += sizeof(char*);
+    word->data = realloc(word->data, data_size);
+    data_index += 1;
+    word->data[data_index] = NULL;
+    *res = word;
+    return PARSER_OK;
+}
+
+static enum parser_status parse_redirection(struct ast **res, struct lexer *lexer)
+{
+    return PARSER_UNEXPECTED_TOKEN;
+    /*fix me*/
+    struct token *tok = lexer_peek(lexer);
+    if (tok->type != TOKEN_IONUMBER)
+        return PARSER_UNEXPECTED_TOKEN;
+    struct ast *ast_nbre = ast_new(AST_IONUMBER);
+    ast_nbre->children = malloc(sizeof(struct ast) * 1);
+    if (!ast_nbre->children)
+    {
+        return 0;
+    }
+    ast_nbre->data[0] = tok->value;
+    struct ast *ast_redir = ast_new(AST_REDIR);
+    ast_redir->children = malloc(sizeof(struct ast) * 2);
+    if (!ast_redir->children)
+    {
+        return 0;
+    }
+
+    /*it is a digit, append in children[0]*/
+    /*///////bug potentiel lexer insere un char et non un char * ?? */
+    ast_redir->children[0] = ast_nbre;
+
+    if (tok->type == TOKEN_REDIRECTION)
+    {
+        ast_redir->data = &tok->value;
+        free(tok->value);
+        token_free(lexer_pop(lexer));
+        if (parse_simple_comm(res, lexer) == PARSER_OK)
+        {
+            ast_redir->children[0] = *res;
+            *res = ast_redir;
+            return PARSER_OK;
+        }
+        else
+        {
+            /*if parse_simple_comm failed*/
+            warnx("syntax error near unexpected token `newline'");
+            free(tok->value);
+            token_free(lexer_pop(lexer));
+            free(ast_redir->children[0]);
+            free(ast_redir);
+            return PARSER_UNEXPECTED_TOKEN;
+        }
+    }
+
+    else
+    {
+        /*if there is no redirection, return an ast_simple_comm*/
+        struct ast *sp_comm = ast_new(AST_SIMPLE_COMM);
+        sp_comm = ast_redir->children[0];
+        ast_redir->children[0] = NULL;
+        free(ast_redir);
+        *res = sp_comm;
+        /*return OK, because it's a good simple_comm*/
+        return PARSER_OK;
+    }
+    return PARSER_UNEXPECTED_TOKEN;
+}
+
+static enum parser_status parse_element(struct ast **res, struct lexer *lexer)
+{
+    enum parser_status status = parse_word(res, lexer);
+    if (status == PARSER_OK)
+        return status;
+    status = parse_redirection(res, lexer);
+    if (status == PARSER_OK)
+        return status;
+    /*if the word and redirection each peeked, need to free*/
+    if (lexer->current_tok)
+    {
+        free(lexer->current_tok->value);
+    }
+    token_free(lexer_pop(lexer));
+    return PARSER_UNEXPECTED_TOKEN;
+}
+
+static enum parser_status parse_prefix(struct ast **res, struct lexer *lexer)
+{
+    enum parser_status status = parse_redirection(res, lexer);
+    if (status == PARSER_OK)
+    {
+        return status;
+    }
+    return PARSER_UNEXPECTED_TOKEN;
+}
+
+/**
  * \brief Parse simple_command formed of redirections and words
  *
  * simple_command: (prefix)+ | (prefix)* (element)+
  */
 enum parser_status parse_simple_comm(struct ast **res, struct lexer *lexer)
 {
-    struct token *tok = lexer_peek(lexer);
-    if (tok->type != TOKEN_OTHER)
-    {
+    if (lexer_peek(lexer)->type == TOKEN_IF)
         return PARSER_UNEXPECTED_TOKEN;
-    }
-    struct ast *sp_comm = ast_new(AST_SIMPLE_COMM);
-    size_t data_size = sizeof(char*) * 1;
-    size_t data_index = 0;
-    sp_comm->data = malloc(data_size);
-    sp_comm->data[0] = tok->value;
-    token_free(lexer_pop(lexer));
-    while (true)
+    if (parse_prefix(res, lexer) == PARSER_OK)
     {
-        tok = lexer_peek(lexer);
-        if (tok->type == TOKEN_EOF || tok->type == TOKEN_NL || tok->type == TOKEN_PV)
+        struct ast *sp_comm = ast_new(AST_SIMPLE_COMM);
+        size_t children_size = sizeof(struct ast);
+        size_t child_index = 0;
+        sp_comm->children = malloc(children_size);
+        sp_comm->children[child_index] = *res;
+        /*fix me*/
+    }
+    else
+    {
+        /*has to be (prefix)* (element)*, so an element at least*/
+        if (parse_element(res, lexer) == PARSER_OK)
         {
-            data_size += sizeof(char*) * 1;
-            sp_comm->data = realloc(sp_comm->data, data_size);
-            data_index++;
-            sp_comm->data[data_index] = NULL;
-            *res = sp_comm;
-            free(tok->value);
-            token_free(lexer_pop(lexer));
-            return PARSER_OK;
+            struct ast *sp_comm = ast_new(AST_SIMPLE_COMM);
+            size_t children_size = sizeof(struct ast);
+            size_t child_index = 0;
+            sp_comm->children = malloc(children_size);
+            sp_comm->children[child_index] = *res;
+            while (true)
+            {
+                if (parse_element(res, lexer) != PARSER_OK)
+                {
+                    children_size += sizeof(struct ast);
+                    sp_comm->children = realloc(sp_comm->children, children_size);
+                    child_index++;
+                    sp_comm->children[child_index] = NULL;
+                    *res = sp_comm;
+                    return PARSER_OK;
+                }
+                children_size += sizeof(struct ast);
+                sp_comm->children = realloc(sp_comm->children, children_size);
+                child_index++;
+                sp_comm->children[child_index] = *res;
+            }
         }
         else
         {
-            data_size += sizeof(char*) * 1;
-            sp_comm->data = realloc(sp_comm->data, data_size);
-            data_index++;
-            sp_comm->data[data_index] = tok->value;
-            token_free(lexer_pop(lexer));
+            /*there's nothing here, the command isn't a simple command*/
+            return PARSER_UNEXPECTED_TOKEN;
         }
     }
+    return PARSER_UNEXPECTED_TOKEN;
 }
 
 /**
@@ -375,7 +514,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
         return PARSER_OK;
     }
 
-    // try to parse an list. if an error occured, free the
+    // try to parse a list. if an error occured, free the
     // produced ast and return the same error code
     enum parser_status status = parse_list(res, lexer);
     if (status != PARSER_OK)

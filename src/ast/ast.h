@@ -4,15 +4,18 @@
 
 enum ast_type
 {
+    AST_WORD,
     AST_LIST,
-    AST_COMM,
     AST_SIMPLE_COMM,
-    AST_PIPE,
     AST_PV,
     AST_FI,
     AST_THEN,
     AST_IF,
     AST_ELIF,
+    AST_REDIR,
+    AST_IONUMBER,
+    AST_NEGATION,
+    AST_PIPELINE,
     AST_ELSE,
     AST_SQ
 };
