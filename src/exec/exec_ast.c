@@ -1,10 +1,9 @@
 #include "ast/ast.h"
-#include "my_echo.h"
+#include "builtins/builtins.h"
 #include <err.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 static int execute_in_child(char **args)
@@ -13,7 +12,11 @@ static int execute_in_child(char **args)
     if (pid == 0)
     {
         if (execvp(args[0], args) == -1)
+        {
+            free(args);
+            args = NULL;
             _exit(127);
+        }
     }
     else
     {
@@ -23,16 +26,21 @@ static int execute_in_child(char **args)
         {
             if (WEXITSTATUS(status) == 127)
             {
-                warnx("%s: command not found", args[0]);
+                warnx("%s: not found", args[0]);
+                free(args);
                 return WEXITSTATUS(status);
             }
             else
             {
+                free(args);
                 return WEXITSTATUS(status);
             }
         }
         else
+        {
+            free(args);
             return 1;
+        }
     }
     return 1;
 }
@@ -45,23 +53,45 @@ int exec_ast(struct ast *ast)
 
     if (ast->type == AST_SIMPLE_COMM)
     {
-        size_t i = 0;
-        if (!strcmp(ast->data[i], "echo"))
+        if (ast->children)
         {
-            i++;
-            my_echo(ast, i);
-            return 0;
-        }
-        if (!strcmp(ast->data[i], "exit"))
-            exit(EXIT_SUCCESS);
+            char **data = malloc (sizeof(char *));
+            size_t data_size = sizeof(char *);
+            size_t data_index = 0;
 
-        /*this could be put in a sub_function called exec_ast_simple_comm*/
-        /*check if it's echo or other built-in or it won't work*/
-        /*fix me*/
-        //execute_in_child(ast->data);
+            size_t i = 0;
+            while (ast->children[i])
+            {
+                if (ast->children[i]->type == AST_WORD)
+                {
+                    data_size += sizeof(char *);
+                    data = realloc(data, data_size);
+                    data[data_index] = ast->children[i]->data[0];
+                    data_index++;
+                    i++;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            data_size += sizeof(char *);
+            data = realloc(data, data_size);
+            data[data_index] = NULL;
+
+            enum builtin_type built;
+            if ((built = check_builtins(data)))
+            {
+                return run_builtin(built, data);
+            }
+            else
+            {
+                return execute_in_child(data);
+            }
+        }
         else
         {
-            return execute_in_child(ast->data);
+            return 1;
         }
     }
     else if (ast->type == AST_LIST)
@@ -86,10 +116,32 @@ int exec_ast(struct ast *ast)
     else if (ast->type == AST_IF)
     {
         if (exec_ast(ast->children[0]) == 0)
+        {
             return exec_ast(ast->children[1]);
-
-        else
+        }
+        else 
+        {
             return exec_ast(ast->children[2]);
+        }
+    }
+    else if (ast->type == AST_PIPELINE)
+    {
+        /* fix this to change file descriptors*/
+        int res_exec = 1;
+        if (!ast->children)
+        {
+            warn("This pipe has no simple_commands attached to it! This shouldn't happen...");
+        }
+        else
+        {
+            size_t i = 0;
+            while (ast->children[i])
+            {
+                res_exec = exec_ast(ast->children[i]);
+                i++;
+            }
+        }
+        return res_exec;
     }
     else
     {
