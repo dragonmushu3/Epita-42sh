@@ -1,14 +1,16 @@
 #include "../ast/ast.h"
 
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <err.h>
 #include <stddef.h>
 #include <string.h>
 
-static void wrapper(char *str, int e, int n)
+static void wrapper(char *str, int e, int n,  int nb)
 {    //function qui verifie les '\n'
-
+    if (nb != 0)
+        putchar(' ');
     int i = 0;
     while (str[i] != '\0')
     {
@@ -41,47 +43,39 @@ static void wrapper(char *str, int e, int n)
     }
 }
 
-//function qui verifie si string est parametre
-/*static int is_param(char *str, int *e, int *n)
+int my_echo(char **argv)
 {
-    if (!strcmp(str, "-n"))
-    {
-           (*n)++;
-           return 1;
-    }
-    if (!strcmp(str, "-e"))
-    {
-           (*e)++;
-           return 1;
-    }
-    return 0;
-} */
-
-//function qui verifie si on a deja passe le param et le skip et apres printf
-
-void my_echo_simple_comm(struct ast *ast, size_t i)
-{
-    int already_met_e = 0;
-    int already_met_n = 0;
-    int finish = 1;
+    int met_e = 0;
+    int met_n = 0;
+    int nb_child = 0;
+    int opt = 0;
+    optind = 1;
     //Check for option -n
-    while (finish != 0)
+
+    size_t nb_arg = 1;
+    while (argv[nb_arg])
     {
-        if (!strcmp(ast->data[i], "-n"))
-        {
-            already_met_n = 1;
-            i++;
-        }
-        if (!strcmp(ast->data[i], "-e"))
-        {
-            already_met_e = 1;
-            i++;
-        }
-        finish = 0;
+        nb_arg++;
     }
-    while (ast->data[i + 1] != NULL)
+
+    while (opt != -1)
     {
-        wrapper(ast->data[i], already_met_e, already_met_n);
+        opt = getopt(nb_arg, argv, "en");
+        if (opt == 'n')
+            met_n = 1;
+        if (opt == 'e')
+            met_e = 1;
+    }
+
+    size_t i = optind;
+    while (argv[i] != NULL)
+    {
+        wrapper(argv[i], met_e, met_n, nb_child);
+        nb_child++;
         i++;
     }
+    if (!met_n)
+        putchar('\n');
+    free(argv);
+    return 0;
 }
