@@ -1,5 +1,5 @@
 #include "ast/ast.h"
-#include "my_echo.h"
+#include "builtins/builtins.h"
 #include <err.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -73,7 +73,16 @@ int exec_ast(struct ast *ast)
             data_size += sizeof(char *);
             data = realloc(data, data_size);
             data[data_index] = NULL;
-            return execute_in_child(data);
+
+            enum builtin_type built;
+            if ((built = check_builtins(data)))
+            {
+                return run_builtin(built, data);
+            }
+            else
+            {
+                return execute_in_child(data);
+            }
         }
         else
         {
