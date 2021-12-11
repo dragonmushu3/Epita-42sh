@@ -12,7 +12,11 @@ static int execute_in_child(char **args)
     if (pid == 0)
     {
         if (execvp(args[0], args) == -1)
+        {
+            free(args);
+            args = NULL;
             _exit(127);
+        }
     }
     else
     {
@@ -20,14 +24,15 @@ static int execute_in_child(char **args)
         waitpid(pid, &status, 0);
         if (WIFEXITED(status))
         {
-            free(args);
             if (WEXITSTATUS(status) == 127)
             {
-                warnx("%s: command not found", args[0]);
+                warnx("%s: not found", args[0]);
+                free(args);
                 return WEXITSTATUS(status);
             }
             else
             {
+                free(args);
                 return WEXITSTATUS(status);
             }
         }
@@ -118,6 +123,25 @@ int exec_ast(struct ast *ast)
         {
             return exec_ast(ast->children[2]);
         }
+    }
+    else if (ast->type == AST_PIPELINE)
+    {
+        /* fix this to change file descriptors*/
+        int res_exec = 1;
+        if (!ast->children)
+        {
+            warn("This pipe has no simple_commands attached to it! This shouldn't happen...");
+        }
+        else
+        {
+            size_t i = 0;
+            while (ast->children[i])
+            {
+                res_exec = exec_ast(ast->children[i]);
+                i++;
+            }
+        }
+        return res_exec;
     }
     else
     {
