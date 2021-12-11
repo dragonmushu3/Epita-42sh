@@ -5,7 +5,8 @@ enum builtin_type
 {
     NO_BUILTIN = 0,
     BUILTIN_CD = 1,
-    BUILTIN_ECHO = 2
+    BUILTIN_ECHO = 2,
+    BUILTIN_EXIT
 };
 
 enum builtin_type check_builtins(char **argv);
