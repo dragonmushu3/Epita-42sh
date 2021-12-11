@@ -6,8 +6,8 @@
 enum builtin_type check_builtins(char **argv)
 {
     if (!strcmp("echo", argv[0]))
-        return BUILTIN_ECHO;
-    else if (!strcmp("cd", argv[1]))
+        return NO_BUILTIN;
+    else if (!strcmp("cd", argv[0]))
         return BUILTIN_CD;
     else
         return NO_BUILTIN;
